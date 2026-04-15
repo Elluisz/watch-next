@@ -20,6 +20,11 @@ const Navbar = () => {
     getGenres().then(setGenres);
   }, []);
 
+  // Sync local input state with URL
+  useEffect(() => {
+    setInputValue(queryParam);
+  }, [queryParam]);
+
   // Debounce the URL update
   useEffect(() => {
     const timer = setTimeout(() => {
