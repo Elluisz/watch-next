@@ -25,8 +25,8 @@ export const getNetflixShows = async (genreId?: string, page: number = 1): Promi
 
   // Return the object that App.tsx is now expecting
   return {
-    results: data.results,
-    totalPages: data.total_pages
+    results: data.results || [],
+    totalPages: data.total_pages || 1
   };
 };
 
@@ -34,7 +34,18 @@ let genresCachePromise: Promise<Genre[]> | null = null;
 
 export const getGenres = async (): Promise<Genre[]> => {
   if (!genresCachePromise) {
-    genresCachePromise = tmdb.get<{ genres: Genre[] }>('/genre/tv/list').then(res => res.data.genres);
+    genresCachePromise = tmdb.get<{ genres: Genre[] }>('/genre/tv/list')
+      .then(res => {
+        if (!res.data || !res.data.genres) {
+          console.error("Failed to load genres, received:", res.data);
+          return [];
+        }
+        return res.data.genres;
+      })
+      .catch(err => {
+        console.error("Error fetching genres:", err);
+        return [];
+      });
   }
   return genresCachePromise;
 };
@@ -52,7 +63,7 @@ export const searchShows = async (query: string, page: number = 1): Promise<Pagi
   });
 
   return {
-    results: data.results,
-    totalPages: data.total_pages
+    results: data.results || [],
+    totalPages: data.total_pages || 1
   };
 };
