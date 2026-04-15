@@ -21,6 +21,8 @@ const Navbar = () => {
   }, []);
 
   // Sync local input state with URL
+  // This is needed so that when the user navigates away from the explore page, 
+
   useEffect(() => {
     setInputValue(queryParam);
   }, [queryParam]);
