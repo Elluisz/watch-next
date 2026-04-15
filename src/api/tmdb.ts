@@ -1,0 +1,62 @@
+import axios from 'axios';
+import { Show, Genre, TMDBResponse } from '../types';
+
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+const BASE_URL = 'https://api.themoviedb.org/3';
+
+const tmdb = axios.create({
+  baseURL: BASE_URL,
+  params: {
+    api_key: API_KEY,
+  },
+});
+
+interface PaginatedResponse {
+  results: Show[];
+  totalPages: number;
+}
+
+export const getNetflixShows = async (genreId?: string, page: number = 1): Promise<PaginatedResponse> => {
+  const { data } = await tmdb.get<TMDBResponse<Show>>('/discover/tv', {
+    params: {
+      with_watch_providers: 8,
+      watch_region: 'US',
+      with_genres: genreId,
+      page: page,
+      sort_by: 'popularity.desc',
+    },
+  });
+
+  // Return the object that App.tsx is now expecting
+  return {
+    results: data.results,
+    totalPages: data.total_pages
+  };
+};
+
+let genresCachePromise: Promise<Genre[]> | null = null;
+
+export const getGenres = async (): Promise<Genre[]> => {
+  if (!genresCachePromise) {
+    genresCachePromise = tmdb.get<{ genres: Genre[] }>('/genre/tv/list').then(res => res.data.genres);
+  }
+  return genresCachePromise;
+};
+
+export const searchShows = async (query: string, page: number = 1): Promise<PaginatedResponse> => {
+  const { data } = await tmdb.get<TMDBResponse<Show>>('/search/tv', {
+    params: {
+      query,
+      page,
+      language: 'en-US',
+      with_watch_providers: 8,
+      watch_region: 'US',
+      include_adult: false
+    },
+  });
+
+  return {
+    results: data.results,
+    totalPages: data.total_pages
+  };
+};
